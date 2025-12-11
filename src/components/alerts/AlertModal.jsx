@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-// import { Audio } from 'expo-av'; // Commented out - install expo-av if you want sound
+import { Audio } from 'expo-av';
 import { COLORS } from '../../constants/colors';
 
 export default function AlertModal({ visible, onDismiss, onViewLocation, alertData }) {
@@ -59,18 +59,27 @@ export default function AlertModal({ visible, onDismiss, onViewLocation, alertDa
 
   const playAlertSound = async () => {
     try {
-      // Optional: Add alert.mp3 to assets folder for custom sound
-      // For now, using vibration only
-      // Uncomment below when you add assets/alert.mp3:
-      /*
+      // Configure audio mode for alerts
+      await Audio.setAudioModeAsync({
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
+        shouldDuckAndroid: true,
+        interruptionModeIOS: 1,
+        interruptionModeAndroid: 1,
+      });
+
+      // Using system notification sound as fallback
+      // To use custom alarm sound, add alarm.mp3 to assets folder and uncomment:
       const { sound: alertSound } = await Audio.Sound.createAsync(
-        require('../../../assets/alert.mp3'),
-        { shouldPlay: true, isLooping: true }
+        require('../../../assets/alarm.WAV'),
+        { shouldPlay: true, isLooping: true, volume: 1.0 }
       );
-      sound.current = alertSound;
-      */
+      
+      // For now, we'll rely on the notification sound from expo-notifications
+      // and vibration for the alarm effect
+      console.log('Alarm triggered - using vibration');
     } catch (error) {
-      console.log('Alert sound not available:', error);
+      console.log('Alert sound error:', error);
     }
   };
 
@@ -117,76 +126,85 @@ export default function AlertModal({ visible, onDismiss, onViewLocation, alertDa
             { transform: [{ scale: pulseAnim }] }
           ]}
         >
-          {/* Alert Icon */}
+          {/* Alert Header with Icon */}
           <View style={[
-            styles.iconContainer,
-            { backgroundColor: isProximityAlert ? COLORS.danger : '#f59e0b' }
+            styles.alertHeader,
+            { backgroundColor: isProximityAlert ? COLORS.danger : '#ef4444' }
           ]}>
             <Ionicons
               name={isElephantAlert ? "warning" : "notifications"}
-              size={60}
+              size={48}
               color={COLORS.white}
             />
+            <Text style={styles.headerTitle}>
+              {isElephantAlert ? 'ELEPHANT ALERT!' : 
+               isProximityAlert ? 'PROXIMITY ALERT!' : 
+               'NOTIFICATION'}
+            </Text>
           </View>
 
-          {/* Alert Title */}
-          <Text style={styles.alertTitle}>
-            {isElephantAlert ? '🐘 ELEPHANT DETECTED!' : 
-             isProximityAlert ? '⚠️ PROXIMITY ALERT!' : 
-             '🔔 NEW NOTIFICATION'}
-          </Text>
+          {/* Alert Body */}
+          <View style={styles.alertBody}>
+            {/* Alert Message */}
+            <Text style={styles.alertTitle}>
+              {isElephantAlert ? 'Elephant Detected Nearby!' : 
+               isProximityAlert ? 'You are near a danger zone!' : 
+               'New Alert'}
+            </Text>
 
-          {/* Alert Message */}
-          <Text style={styles.alertMessage}>
-            {alertData.title || alertData.message}
-          </Text>
+            <Text style={styles.alertMessage}>
+              {alertData.title || alertData.message}
+            </Text>
 
-          {/* Location Info */}
-          {alertData.latitude && alertData.longitude && (
-            <View style={styles.locationInfo}>
-              <Ionicons name="location" size={16} color={COLORS.textLight} />
-              <Text style={styles.locationText}>
-                {alertData.latitude.toFixed(6)}, {alertData.longitude.toFixed(6)}
-              </Text>
+            {/* Location Info */}
+            {alertData.latitude && alertData.longitude && (
+              <View style={styles.locationInfo}>
+                <Ionicons name="location" size={18} color={COLORS.danger} />
+                <Text style={styles.locationText}>
+                  {alertData.latitude.toFixed(6)}, {alertData.longitude.toFixed(6)}
+                </Text>
+              </View>
+            )}
+
+            {/* Additional Info */}
+            <View style={styles.infoContainer}>
+              {alertData.confidence && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Confidence:</Text>
+                  <Text style={styles.infoValue}>
+                    {(alertData.confidence * 100).toFixed(0)}%
+                  </Text>
+                </View>
+              )}
+
+              {alertData.source_device && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Device:</Text>
+                  <Text style={styles.infoValue}>{alertData.source_device}</Text>
+                </View>
+              )}
+
+              {alertData.detected_at && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Time:</Text>
+                  <Text style={styles.infoValue}>
+                    {new Date(alertData.detected_at).toLocaleTimeString()}
+                  </Text>
+                </View>
+              )}
             </View>
-          )}
-
-          {/* Additional Info */}
-          {alertData.confidence && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Confidence:</Text>
-              <Text style={styles.infoValue}>
-                {(alertData.confidence * 100).toFixed(0)}%
-              </Text>
-            </View>
-          )}
-
-          {alertData.source_device && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Device:</Text>
-              <Text style={styles.infoValue}>{alertData.source_device}</Text>
-            </View>
-          )}
-
-          {alertData.detected_at && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Time:</Text>
-              <Text style={styles.infoValue}>
-                {new Date(alertData.detected_at).toLocaleTimeString()}
-              </Text>
-            </View>
-          )}
+          </View>
 
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
-            {/* View Location Button */}
+            {/* View Button */}
             {alertData.latitude && alertData.longitude && (
               <TouchableOpacity
                 style={styles.viewButton}
                 onPress={handleViewLocation}
               >
                 <Ionicons name="map" size={20} color={COLORS.white} />
-                <Text style={styles.viewButtonText}>View Location</Text>
+                <Text style={styles.viewButtonText}>View</Text>
               </TouchableOpacity>
             )}
 
@@ -208,88 +226,102 @@ export default function AlertModal({ visible, onDismiss, onViewLocation, alertDa
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   alertContainer: {
-    backgroundColor: COLORS.white,
-    borderRadius: 24,
-    padding: 24,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
     width: '100%',
     maxWidth: 400,
-    alignItems: 'center',
+    overflow: 'hidden',
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
   },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  alertHeader: {
+    paddingVertical: 24,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    gap: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
+  alertBody: {
+    padding: 20,
+    backgroundColor: '#ffffff',
   },
   alertTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: '#1f2937',
     textAlign: 'center',
     marginBottom: 12,
   },
   alertMessage: {
-    fontSize: 16,
-    color: COLORS.textLight,
+    fontSize: 15,
+    color: '#6b7280',
     textAlign: 'center',
     marginBottom: 16,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   locationInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'center',
+    gap: 8,
     marginBottom: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: COLORS.background,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#fef2f2',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fecaca',
   },
   locationText: {
     fontSize: 13,
-    color: COLORS.text,
+    color: '#991b1b',
     fontFamily: 'monospace',
+    fontWeight: '600',
+  },
+  infoContainer: {
+    gap: 8,
+    marginTop: 8,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f9fafb',
+    borderRadius: 6,
   },
   infoLabel: {
     fontSize: 14,
-    color: COLORS.textLight,
+    color: '#6b7280',
+    fontWeight: '500',
   },
   infoValue: {
     fontSize: 14,
-    color: COLORS.text,
+    color: '#1f2937',
     fontWeight: '600',
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 24,
-    width: '100%',
+    padding: 20,
+    paddingTop: 0,
+    backgroundColor: '#ffffff',
   },
   viewButton: {
     flex: 1,
@@ -299,7 +331,7 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: COLORS.primary,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 10,
     elevation: 3,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
@@ -317,12 +349,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: COLORS.textLight,
+    backgroundColor: '#e5e7eb',
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 10,
+    elevation: 2,
   },
   dismissButtonText: {
-    color: COLORS.white,
+    color: '#374151',
     fontSize: 16,
     fontWeight: 'bold',
   },

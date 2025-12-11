@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { deviceAPI } from '../services/api';
 import { COLORS } from '../constants/colors';
@@ -102,13 +102,12 @@ export default function DeviceMapScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Map */}
+      {/* Map - Using default provider (OpenStreetMap) */}
       <MapView
         style={styles.map}
         initialRegion={region}
         region={region}
         onRegionChangeComplete={setRegion}
-        provider={PROVIDER_GOOGLE}
       >
         {devices.map((device) => {
           if (device.latitude && device.longitude) {
@@ -163,10 +162,10 @@ export default function DeviceMapScreen({ navigation }) {
             </View>
 
             <View style={styles.detailRow}>
-              <Ionicons 
-                name="radio-button-on" 
-                size={16} 
-                color={selectedDevice.status === 'online' ? COLORS.success : COLORS.textLight} 
+              <Ionicons
+                name="radio-button-on"
+                size={16}
+                color={selectedDevice.status === 'online' ? COLORS.success : COLORS.textLight}
               />
               <Text style={styles.detailText}>
                 Status: {selectedDevice.status === 'online' ? 'Online' : 'Offline'}
@@ -175,10 +174,10 @@ export default function DeviceMapScreen({ navigation }) {
 
             {selectedDevice.battery_percentage !== null && (
               <View style={styles.detailRow}>
-                <Ionicons 
-                  name="battery-half-outline" 
-                  size={16} 
-                  color={selectedDevice.battery_percentage < 20 ? COLORS.danger : COLORS.textLight} 
+                <Ionicons
+                  name="battery-half-outline"
+                  size={16}
+                  color={selectedDevice.battery_percentage < 20 ? COLORS.danger : COLORS.textLight}
                 />
                 <Text style={styles.detailText}>
                   Battery: {selectedDevice.battery_percentage}%

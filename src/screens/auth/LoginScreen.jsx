@@ -45,11 +45,20 @@ export default function LoginScreen({ navigation }) {
 
     setLoading(true);
     try {
+      // Debug: Log API URL
+      console.log('🔍 API URL:', process.env.EXPO_PUBLIC_API_URL);
+      console.log('📧 Attempting login with:', email.toLowerCase().trim());
+      
       await login(email.toLowerCase().trim(), password);
     } catch (error) {
+      console.error('Login error:', error);
+      console.error('Error details:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error message:', error.message);
+      
       Alert.alert(
         'Login Failed',
-        error.response?.data?.error || 'Invalid credentials. Please try again.'
+        error.response?.data?.error || error.message || 'Invalid credentials. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -127,7 +136,7 @@ export default function LoginScreen({ navigation }) {
           </View>
 
           {/* Footer */}
-          <Text style={styles.footer}>Project Airavata v1.0</Text>
+          <Text style={styles.footer}>Project Airavata </Text>
           <Text
             style={styles.debugLink}
             onPress={() => navigation.navigate('Debug')}

@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { useAlert } from '../contexts/AlertContext';
 import { userAPI, deviceAPI, hotspotAPI, eventAPI } from '../services/api';
 import { COLORS } from '../constants/colors';
 
@@ -74,6 +75,27 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(false);
   };
 
+  //  TEST ALERT FUNCTION - For debugging
+  const { setAlertVisible, setCurrentAlert } = useAlert();
+  
+  const testAlert = () => {
+    console.log(' Testing alert manually...');
+    
+    setCurrentAlert({
+      type: 'elephant_detection',
+      title: 'TEST: Elephant Detected!',
+      message: 'This is a manual test alert - tap View Location to see map',
+      latitude: 21.34,
+      longitude: 82.75,
+      confidence: 0.95,
+      source_device: 'TEST-DEVICE',
+      detected_at: new Date().toISOString(),
+    });
+    
+    setAlertVisible(true);
+    console.log('✅ Alert should now be visible');
+  };
+
   const StatCard = ({ icon, title, value, color, onPress }) => (
     <TouchableOpacity
       style={[styles.statCard, { borderLeftColor: color }]}
@@ -95,10 +117,18 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Welcome back,</Text>
-          <Text style={styles.userName}>{user?.name} 🐘</Text>
+          <Text style={styles.userName}>{user?.name} </Text>
         </View>
-        <View style={styles.roleContainer}>
-          <Text style={styles.roleText}>{user?.role?.toUpperCase()}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          {/*  TEST ALERT BUTTON - Remove after debugging */}
+          <TouchableOpacity 
+            style={styles.testButton}
+            onPress={testAlert}
+          >
+            <Ionicons name="notifications" size={20} color={COLORS.white} />
+          </TouchableOpacity>
+          
+          
         </View>
       </View>
 
@@ -304,6 +334,19 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 11,
     fontWeight: '600',
+  },
+  testButton: {
+    backgroundColor: '#ef4444',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
   scrollContent: {
     padding: 16,

@@ -12,7 +12,7 @@ import DeviceManagementScreen from '../screens/DeviceManagementScreen';
 import DeviceMapScreen from '../screens/DeviceMapScreen';
 import EventsMapScreen from '../screens/EventsMapScreen';
 import LiveAlertMapScreen from '../screens/LiveAlertMapScreen';
-import AlertModal from '../components/alerts/AlertModal';
+import HeadsUpNotification from '../components/alerts/HeadsUpNotification';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { COLORS } from '../constants/colors';
 
@@ -28,7 +28,7 @@ function AlertWrapper() {
   };
 
   return (
-    <AlertModal
+    <HeadsUpNotification
       visible={alertVisible}
       onDismiss={dismissAlert}
       onViewLocation={handleViewLocation}

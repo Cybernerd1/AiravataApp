@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Circle } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { eventAPI, hotspotAPI } from '../services/api';
 import { COLORS } from '../constants/colors';
@@ -131,13 +131,12 @@ export default function EventsMapScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Map */}
+      {/* Map - Using OpenStreetMap */}
       <MapView
         style={styles.map}
         initialRegion={region}
         region={region}
         onRegionChangeComplete={setRegion}
-        provider={PROVIDER_GOOGLE}
       >
         {/* Elephant Detection Events */}
         {events.map((event) => {

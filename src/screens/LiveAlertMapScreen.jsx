@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker, Circle, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Circle, Polyline } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { COLORS } from '../constants/colors';
@@ -114,7 +114,7 @@ export default function LiveAlertMapScreen({ route, navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Live Alert Map</Text>
+        <Text style={styles.title}>Live Map</Text>
         <TouchableOpacity onPress={getUserLocation}>
           <Ionicons name="refresh" size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -142,12 +142,11 @@ export default function LiveAlertMapScreen({ route, navigation }) {
         </View>
       )}
 
-      {/* Map */}
+      {/* Map - Using OpenStreetMap */}
       <MapView
         style={styles.map}
         initialRegion={getRegion()}
         region={getRegion()}
-        provider={PROVIDER_GOOGLE}
         showsUserLocation={true}
         showsMyLocationButton={true}
       >

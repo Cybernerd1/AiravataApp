@@ -65,13 +65,42 @@ export function AlertProvider({ children }) {
                 return;
             }
 
-            // Get push notification token
-            const token = await Notifications.getExpoPushTokenAsync();
-            console.log('Push token:', token.data);
+            // Set up notification channel for Android
+            if (Platform.OS === 'android') {
+                await Notifications.setNotificationChannelAsync('default', {
+                    name: 'Elephant Alerts',
+                    importance: Notifications.AndroidImportance.MAX,
+                    vibrationPattern: [0, 250, 250, 250],
+                    sound: 'alarm.mp3',
+                    lightColor: '#10b981',
+                    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+                    bypassDnd: true,
+                });
+
+                // Create a high-priority channel for critical alerts
+                await Notifications.setNotificationChannelAsync('critical-alerts', {
+                    name: 'Critical Elephant Alerts',
+                    importance: Notifications.AndroidImportance.MAX,
+                    vibrationPattern: [0, 500, 200, 500],
+                    sound: 'alarm.mp3',
+                    lightColor: '#ef4444',
+                    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+                    bypassDnd: true,
+                    enableLights: true,
+                    enableVibrate: true,
+                });
+            }
+
+            // Get push notification token with proper project ID
+            const tokenData = await Notifications.getExpoPushTokenAsync({
+                projectId: '6a598bb0-9f63-46b8-848e-df8cc1ab822b'
+            });
+            console.log('Push token:', tokenData.data);
 
             // Register FCM token with backend
             try {
-                await notificationAPI.registerToken(token.data, Platform.OS);
+                await notificationAPI.registerToken(tokenData.data, Platform.OS);
+                console.log('Token registered with backend successfully');
             } catch (error) {
                 console.error('Error registering FCM token:', error);
             }
@@ -168,11 +197,18 @@ export function AlertProvider({ children }) {
                     title,
                     body,
                     data,
-                    sound: true,
-                    priority: Notifications.AndroidNotificationPriority.HIGH,
+                    sound: 'alarm.mp3',
+                    priority: Notifications.AndroidNotificationPriority.MAX,
+                    vibrate: [0, 250, 250, 250],
+                    badge: 1,
+                    categoryIdentifier: 'elephant_alert',
+                    ...(Platform.OS === 'android' && {
+                        channelId: 'critical-alerts',
+                    }),
                 },
                 trigger: null, // Show immediately
             });
+            console.log('Local notification sent:', title);
         } catch (error) {
             console.error('Error sending local notification:', error);
         }
